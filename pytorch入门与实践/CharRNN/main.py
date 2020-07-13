@@ -18,12 +18,12 @@ class Config(object):
     category = 'poet.tang' # 类别，唐诗还是宋诗歌(poet.song)
     lr = 1e-3 
     weight_decay = 1e-4
-    use_gpu = True
+    use_gpu = False
     epoch = 20  
     batch_size = 128
     maxlen = 125 # 超过这个长度的之后字被丢弃，小于这个长度的在前面补空格
     plot_every = 20 # 每20个batch 可视化一次
-    # use_env = True # 是否使用visodm
+    use_env = False # 是否使用visodm
     env='poetry' # visdom env
     max_gen_len = 200 # 生成诗歌最长长度
     debug_file='/tmp/debugp'
@@ -124,7 +124,7 @@ def train(**kwargs):
     for k,v in kwargs.items():
         setattr(opt,k,v)
 
-    vis = Visualizer(env=opt.env)
+    # vis = Visualizer(env=opt.env)
 
     # 获取数据
     data,word2ix,ix2word = get_data(opt)
