@@ -19,15 +19,15 @@ class Config(object):
     lr = 1e-3 
     weight_decay = 1e-4
     use_gpu = False
-    epoch = 20  
+    epoch = 20
     batch_size = 128
     maxlen = 125 # 超过这个长度的之后字被丢弃，小于这个长度的在前面补空格
     plot_every = 20 # 每20个batch 可视化一次
-    use_env = False # 是否使用visodm
+    use_env = True # 是否使用visodm
     env='poetry' # visdom env
     max_gen_len = 200 # 生成诗歌最长长度
     debug_file='/tmp/debugp'
-    model_path=None # 预训练模型路径
+    model_path='./checkpoints/tang_0.pth' # 预训练模型路径
     prefix_words = '细雨鱼儿出,微风燕子斜。' # 不是诗歌的组成部分，用来控制生成诗歌的意境
     start_words='闲云潭影日悠悠' # 诗歌开始
     acrostic = False # 是否是藏头诗
@@ -52,7 +52,7 @@ def generate(model,start_words,ix2word,word2ix,prefix_words=None):
     if prefix_words:
         for word in prefix_words:
             output,hidden = model(input,hidden)
-            input = Variable(input.data.new([word2ix[word]])).view(1,1)
+            input = Variable(input.data.new([word2ix.get(word,0)])).view(1,1)
     
     for i in range(opt.max_gen_len):
         output,hidden = model(input,hidden)
@@ -62,7 +62,7 @@ def generate(model,start_words,ix2word,word2ix,prefix_words=None):
             input = Variable(input.data.new([word2ix[w]])).view(1,1)      
         else:
             top_index  = output.data[0].topk(1)[1][0]
-            w = ix2word[top_index]  
+            w = ix2word[top_index.item()]  
             results.append(w)
             input = Variable(input.data.new([top_index])).view(1,1)
         if w=='<EOP>':
@@ -98,7 +98,7 @@ def gen_acrostic(model,start_words,ix2word,word2ix, prefix_words = None):
     for i in range(opt.max_gen_len):
         output,hidden = model(input,hidden)
         top_index  = output.data[0].topk(1)[1][0]
-        w = ix2word[top_index]
+        w = ix2word[top_index.item()]
 
         if (pre_word  in {u'。',u'！','<START>'} ):
             # 如果遇到句号，藏头的词送进去生成
@@ -124,7 +124,7 @@ def train(**kwargs):
     for k,v in kwargs.items():
         setattr(opt,k,v)
 
-    # vis = Visualizer(env=opt.env)
+    vis = Visualizer(env=opt.env)
 
     # 获取数据
     data,word2ix,ix2word = get_data(opt)
@@ -150,7 +150,6 @@ def train(**kwargs):
     for epoch in range(opt.epoch):
         loss_meter.reset()
         for ii,data_ in tqdm.tqdm(enumerate(dataloader)):    
-
             # 训练
             data_ = data_.long().transpose(1,0).contiguous()
             if opt.use_gpu: data_ = data_.cuda()      
@@ -161,7 +160,7 @@ def train(**kwargs):
             loss.backward()
             optimizer.step()
         
-            loss_meter.add(loss.data[0])
+            loss_meter.add(loss.item())
 
             # 可视化
             if (1+ii)%opt.plot_every==0:
@@ -172,10 +171,9 @@ def train(**kwargs):
                 vis.plot('loss',loss_meter.value()[0])
                 
                 # 诗歌原文
-                poetrys=[ [ix2word[_word] for _word in data_[:,_iii]] 
+                poetrys=[ [ix2word[_word] for _word in data_[:,_iii].numpy()] 
                                     for _iii in range(data_.size(1))][:16]
                 vis.text('</br>'.join([''.join(poetry) for poetry in poetrys]),win=u'origin_poem')
-                
                 gen_poetries = []
                 # 分别以这几个字作为诗歌的第一个字，生成8首诗
                 for word in list(u'春江花月夜凉如水'):
@@ -201,14 +199,15 @@ def gen(**kwargs):
     
     if opt.use_gpu:
         model.cuda()
-    if sys.version_info.major == 3:
-        start_words = opt.start_words.encode('ascii', 'surrogateescape').decode('utf8')
-        prefix_words = opt.prefix_words.encode('ascii', 'surrogateescape').decode('utf8') if opt.prefix_words else None
-    else:
-        start_words = opt.start_words.decode('utf8')
-        prefix_words = opt.prefix_words.decode('utf8') if opt.prefix_words else None
+    # if sys.version_info.major == 3:
+    #     start_words = opt.start_words.encode('ascii', 'surrogateescape').decode('utf8')
+    #     prefix_words = opt.prefix_words.encode('ascii', 'surrogateescape').decode('utf8') if opt.prefix_words else None
+    # else:
+    #     start_words = opt.start_words.decode('utf8')
+    #     prefix_words = opt.prefix_words.decode('utf8') if opt.prefix_words else None
      
-     
+    start_words = opt.start_words
+    prefix_words = opt.prefix_words
     start_words= start_words.replace(',',u'，')\
                                      .replace('.',u'。')\
                                      .replace('?',u'？')

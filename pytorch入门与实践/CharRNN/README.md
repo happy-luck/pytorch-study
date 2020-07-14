@@ -60,8 +60,7 @@ python main.py train --plot-every=150\
 生成藏头诗的命令如下：
 
 ```Bash
-python  main.py gen  --model-path='checkpoints/tang_199.pth' \
-       --pickle-path='tang.npz' \
+python  main.py gen   --pickle-path='tang.npz' \
        --start-words='深度学习' \
        --prefix-words='江流天地外，山色有无中。' \
        --acrostic=True\
@@ -72,8 +71,7 @@ python  main.py gen  --model-path='checkpoints/tang_199.pth' \
 生成其它诗歌的命令如下：
 
 ```Bash
-python2 main.py gen  --model-path='model.pth' 
-					 --pickle-path='tang.npz' 
+python main.py gen   --pickle-path='tang.npz' 
 					 --start-words='江流天地外，' # 诗歌的开头
 					 --prefix-words='郡邑浮前浦，波澜动远空。' 
 江流天地外，风日水边东。稍稍愁蝴蝶，心摧苎范蓬。云飞随海远，心似汉阳培。按俗朝廷上，分军朔雁通。封疆朝照地，赐劒豫章中。畴昔分曹籍，高名翰墨场。翰林推国器，儒冠见忠贞。臯宙非无事，姦邪亦此中。渥仪非贵盛，儒实不由锋。几度沦亡阻，千年垒数重。宁知天地外，长恐海西东。邦测期戎逼，箫韶故国通。蜃楼瞻凤篆，云辂接旌幢。別有三山里，来随万里同。烟霞临海路，山色落云中。渥泽三千里，青山万古通。何言陪宴侣，复使
@@ -93,12 +91,13 @@ test:
 - [x] Python2
 - [x] Python3
 
+checkpoints中的模型未完全训练，仅支持跑通，模型需要重新训练
 
 ## 举例
 
 - 藏头诗
 ```Bash
- python3  main.py gen  --model-path='checkpoints/tang_199.pth' \
+ python3  main.py gen  --model-path='checkpoints/tang_0.pth' \
                                      --pickle-path='tang.npz' \
                                      --start-words="深度学习" \
                                      --prefix-words="江流天地外，山色有无中。" \
@@ -109,7 +108,7 @@ test:
 
 - 深度学习开头，七言
 ```Bash
-python2  main.py gen    --model-path='checkpoints/tang_199.pth' \
+python3  main.py gen    --model-path='checkpoints/tang_0.pth' \
                         --pickle-path='tang.npz' \
                         --start-words="深度学习" \
                         --prefix-words="庄生晓梦迷蝴蝶，望帝春心托杜鹃。" \

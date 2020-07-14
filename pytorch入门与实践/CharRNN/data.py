@@ -27,9 +27,7 @@ def _parseRawData(author = None, constrain = None,src = './data',category="poet.
         # 生摘琵琶酸。（「琵琶」，嚴壽澄校《張祜詩集》云：疑「枇杷」之誤。）
         # 好是去塵俗，煙花長一欄。"
         result, number = re.subn(u"（.*）", "", para)
-        result, number = re.subn(u"（.*）", "", para)
         result, number = re.subn(u"{.*}", "", result)
-        result, number = re.subn(u"《.*》", "", result)
         result, number = re.subn(u"《.*》", "", result)
         result, number = re.subn(u"[\]\[]", "", result)
         r = ""
@@ -158,7 +156,7 @@ def get_data(opt):
     @return data: numpy数组，每一行是一首诗对应的字的下标
     '''
     if os.path.exists(opt.pickle_path):
-        data = np.load(opt.pickle_path)
+        data = np.load(opt.pickle_path,allow_pickle=True)
         data,word2ix,ix2word  = data['data'],data['word2ix'].item(),data['ix2word'].item()
         return data,word2ix,ix2word
 
@@ -170,7 +168,6 @@ def get_data(opt):
     word2ix['<START>'] = len(word2ix) # 起始标识符
     word2ix['</s>'] = len(word2ix) # 空格
     ix2word = {_ix:_word for _word,_ix in list(word2ix.items())}
-    
     # 为每首诗歌加上起始符和终止符
     for i in range(len(data)):
         data[i] = ["<START>"]+list(data[i]) + ["<EOP>"]
@@ -188,7 +185,7 @@ def get_data(opt):
                              value=len(word2ix)-1)
 
     # 保存成二进制文件
-    np.savez_compressed(opt.pickle_path,
+    np.savez(opt.pickle_path,
                             data=pad_data,
                             word2ix=word2ix,
                             ix2word=ix2word)                        
